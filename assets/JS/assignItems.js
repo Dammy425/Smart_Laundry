@@ -66,21 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('customerIdDisplay').value = customerId;
   document.getElementById('customerNameDisplay').value = customerName;
 
-  // Auto-fill Service Type textbox from localStorage, linked to customerId
-  // TEST: If service entry for cu46590 is missing, add a sample entry
-  if (customerId === 'cu46590') {
-    var serviceEntriesTest = JSON.parse(localStorage.getItem('serviceEntries') || '[]');
-    var exists = serviceEntriesTest.some(e => String(e.customerId).trim() === 'cu46590');
-    if (!exists) {
-      serviceEntriesTest.push({ customerId: 'cu46590', serviceType: 'Normal Delivery' });
-      localStorage.setItem('serviceEntries', JSON.stringify(serviceEntriesTest));
-      console.log('Test service entry added for cu46590 with serviceType Normal Delivery');
-    }
-  }
-  // Debugging output
-  console.log('serviceEntries:', JSON.parse(localStorage.getItem('serviceEntries') || '[]'));
-  console.log('stat_array:', JSON.parse(localStorage.getItem('stat_array') || '[]'));
-  console.log('customerId:', customerId);
+  // Auto-fill Service Type textbox from localStorage
   var serviceTypeInput = document.getElementById('serviceTypeDisplay');
   var serviceTypeValue = '';
   try {
@@ -89,14 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (serviceEntry && serviceEntry.serviceType) {
       serviceTypeValue = serviceEntry.serviceType;
     } else {
-      // Fallback: try stat_array
-      var statArray = JSON.parse(localStorage.getItem('stat_array') || '[]');
-      var statEntry = statArray.find(e => String(e.customerId1).trim() === String(customerId).trim());
-      if (statEntry && statEntry.serviceType) {
-        serviceTypeValue = statEntry.serviceType;
-      } else {
-        console.log('Service type not found for customerId:', customerId);
-      }
+      console.log('Service type not found for customerId:', customerId);
     }
   } catch (err) {
     serviceTypeValue = '';
@@ -104,11 +83,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   serviceTypeInput.value = serviceTypeValue;
 
-
   // Get selects by new unique IDs
   var laundryTypeSelect = document.getElementById('laundryTypeSelect');
   var clothingTypeSelect = document.getElementById('clothingTypeSelect');
-  // Removed priceMsg logic (only needed for assignService)
 
   function populateClothingType(optionsArray) {
     clothingTypeSelect.innerHTML = '';
@@ -136,11 +113,8 @@ document.addEventListener('DOMContentLoaded', function() {
       clothingTypeSelect.innerHTML = '';
     }
   });
-
-  // No price logic needed for assignItems
 });
 
-// ...existing code...
 // Utility to save to localStorage (append to array)
 function saveToStore(key, value) {
   let arr = JSON.parse(localStorage.getItem(key) || '[]');
@@ -154,7 +128,6 @@ function getAssignmentsByCustomerId(customerId) {
   return arr.filter(entry => entry.customerId === customerId);
 }
 
-
 // Handler for Register Service Entry button
 function registerItemAssignment() {
   var customerId = document.getElementById('customerIdDisplay').value.trim();
@@ -163,13 +136,21 @@ function registerItemAssignment() {
   var clothingType = document.getElementById('clothingTypeSelect').value;
   var clothDescription = document.getElementById('clothDescriptionInput').value.trim();
 
+  // Validate all required fields
   if (!customerId || !customerName || !laundryType || !clothingType || !clothDescription) {
-    console.log('DEBUG: customerId:', customerId);
-    console.log('DEBUG: customerName:', customerName);
-    console.log('DEBUG: laundryType:', laundryType);
-    console.log('DEBUG: clothingType:', clothingType);
-    console.log('DEBUG: clothDescription:', clothDescription);
     alert('Please fill in all fields.');
+    return;
+  }
+
+  // Validate clothing type selection
+  if (clothingType === "-- Select Clothing Type --") {
+    alert('Please select a valid clothing type.');
+    return;
+  }
+
+  // Validate cloth description length
+  if (clothDescription.length < 3) {
+    alert('Please enter a more detailed description (at least 3 characters).');
     return;
   }
 
@@ -178,8 +159,21 @@ function registerItemAssignment() {
     customerName: customerName,
     laundryType: laundryType,
     clothingType: clothingType,
-    clothDescription: clothDescription
+    clothDescription: clothDescription,
+    dateRegistered: new Date().toISOString() // Add timestamp for tracking
   };
+
+  // Save the assignment
   saveToStore('assignments', assignment);
-  alert('Assignment saved successfully!');
+  
+  // Show success message
+  alert('Item registered successfully! Redirecting to pickup page...');
+  
+  // Clear the form (optional)
+  document.getElementById('clothDescriptionInput').value = '';
+  
+  // Redirect to pickup page after 1 second
+  setTimeout(function() {
+    window.location.href = "pickup.html";
+  }, 1000);
 }

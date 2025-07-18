@@ -1,5 +1,4 @@
 // pickup.js
-
 document.addEventListener('DOMContentLoaded', function() {
     // Load all necessary data from localStorage
     const customers = JSON.parse(localStorage.getItem('stat_array') || '[]');
@@ -33,18 +32,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Find service type
         const serviceEntry = serviceEntries.find(s => s.customerId === customerId);
-        const serviceType = serviceEntry ? serviceEntry.serviceType : 'Not Specified';
+        const serviceType = serviceEntry ? serviceEntry.serviceType : 'Normal Delivery'; // Default to normal
         
         // Process each assignment for this customer
         assignmentsByCustomer[customerId].forEach(assignment => {
             const row = document.createElement("tr");
             
+            // Create delivery time estimate based on service type
+            let deliveryTime;
+            switch(serviceType) {
+                case 'Super Express Delivery':
+                    deliveryTime = '20 mins';
+                    break;
+                case 'Express Delivery':
+                    deliveryTime = '2 hours';
+                    break;
+                default: // Normal Delivery
+                    deliveryTime = '16 hours';
+            }
+            
             row.innerHTML = `
                 <td>${customerId}</td>
                 <td>${assignment.clothingType}</td>
                 <td>${assignment.clothDescription}</td>
-                <td>1</td> <!-- Assuming quantity is 1 per item -->
+                <td>1</td>
                 <td>${serviceType}</td>
+                <td>${deliveryTime}</td>
+                <td><button class="w3-button w3-green accept-btn" data-service="${serviceType}">Accept Order</button></td>
             `;
             
             tableBody.appendChild(row);
@@ -54,20 +68,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // If no assignments found, show a message
     if (tableBody.innerHTML === '') {
         const row = document.createElement("tr");
-        row.innerHTML = `<td colspan="5" class="w3-center">No pickup items found</td>`;
+        row.innerHTML = `<td colspan="7" class="w3-center">No pickup items found</td>`;
         tableBody.appendChild(row);
     }
+    
+    // Add event listeners to all accept buttons
+    document.querySelectorAll('.accept-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const serviceType = this.getAttribute('data-service');
+            let deliveryTime;
+            
+            // Determine delivery time based on service type
+            switch(serviceType) {
+                case 'Super Express Delivery':
+                    deliveryTime = '20 mins';
+                    break;
+                case 'Express Delivery':
+                    deliveryTime = '2 hours';
+                    break;
+                default: // Normal Delivery
+                    deliveryTime = '16 hours';
+            }
+            
+            // Update button text and disable it
+            this.textContent = `Accepted (${deliveryTime} delivery)`;
+            this.classList.remove('w3-green');
+            this.classList.add('w3-blue');
+            this.disabled = true;
+            
+            // Show confirmation message
+            alert(`Order accepted! Estimated delivery time: ${deliveryTime}`);
+            
+            // Here you could also update localStorage to mark this order as accepted
+        });
+    });
 });
-
-// Helper function to format service type display
-function formatServiceType(serviceType) {
-    if (!serviceType) return 'Not Specified';
-    
-    const typeMap = {
-        'Normal Delivery': 'Normal',
-        'Express Delivery': 'Express',
-        'Super Express Delivery': 'Super Express'
-    };
-    
-    return typeMap[serviceType] || serviceType;
-}
