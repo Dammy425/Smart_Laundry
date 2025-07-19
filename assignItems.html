@@ -1,40 +1,174 @@
-<!-- Previous HTML remains the same until the form section -->
-<div class="w3-container w3-white w3-padding-16">
-  <div id="itemsContainer">
-    <!-- Initial item form will be here -->
-    <div class="item-form w3-row-padding" style="margin: 0 -16px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
-      <div class="w3-col m4 l4 w3-margin-bottom">
-        <label><i class="fa fa-truck-fast fa-fw"></i> Laundry Type</label>
-        <select class="w3-input w3-border laundry-type" required>
-          <option value="">-- Select Laundry Type --</option>
-          <option value="laundry">Laundry</option>
-          <option value="drycleaning">Dry Cleaning</option>
-        </select>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Item Registration</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="./assets/CSS/css1.css"/>
+    <link rel="stylesheet" href="./assets/CSS/css2.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      html, body, h1, h2, h3, h4, h5 {
+        font-family: "Raleway", sans-serif;
+      }
+      #actionButtons {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
+      .item-form {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        background-color: #f9f9f9;
+      }
+      .item-form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .remove-item-btn {
+        color: #f44336;
+        cursor: pointer;
+      }
+      .price-display {
+        font-weight: bold;
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+      }
+      #addNewItemBtn {
+        margin-bottom: 20px;
+      }
+    </style>
+</head>
+<body class="w3-light-grey">
+    <!-- Top container -->
+    <div class="w3-bar w3-top w3-black w3-large" style="z-index: 4">
+      <button class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey" onclick="w3_open();">
+        <i class="fa fa-bars"></i> Menu
+      </button>
+      <span class="w3-bar-item w3-right">Logo</span>
+    </div>
+
+    <!-- Sidebar/menu -->
+    <nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index: 3; width: 300px" id="mySidebar">
+      <br />
+      <div class="w3-container w3-row">
+        <div class="w3-col s4">
+          <img src="/w3images/avatar2.png" class="w3-circle w3-margin-right" style="width: 46px"/>
+        </div>
+        <div class="w3-col s8 w3-bar">
+          <span>Welcome, <strong><span id="userName"></span>Mike</strong></span><br />
+          <a href="#" class="w3-bar-item w3-button"><i class="fa fa-envelope"></i></a>
+          <a href="#" class="w3-bar-item w3-button"><i class="fa fa-user"></i></a>
+          <a href="#" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
+        </div>
       </div>
-      <div class="w3-col m4 l4 w3-margin-bottom">
-        <label><i class="fa fa-truck-fast fa-fw"></i> Clothing Type</label>
-        <select class="w3-input w3-border clothing-type" required>
-          <option value="">-- Select Clothing Type --</option>
-          <!-- Options will be populated by JS -->
-        </select>
+      <hr />
+      <div class="w3-container">
+        <h5>Dashboard</h5>
       </div>
-      <div class="w3-col m4 l4 w3-margin-bottom">
-        <label><i class="fa fa-align-left fa-fw"></i> Item Description</label>
-        <input class="w3-input w3-border cloth-description" type="text" placeholder="Enter item description..." required/>
+      <div class="w3-bar-block">
+        <a href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu">
+          <i class="fa fa-remove fa-fw"></i> Close Menu
+        </a>
+        <a href="index.html" class="w3-bar-item w3-button w3-padding">
+          <i class="fa fa-dashboard fa-fw"></i> Dashboard
+        </a>
+        <a href="register.html" class="w3-bar-item w3-button w3-padding">
+          <i class="fa fa-user-plus"></i> Register Customer
+        </a>
+        <a href="serviceType.html" class="w3-bar-item w3-button w3-padding">
+          <i class="fa-solid fa-truck-fast"></i> Service Type
+        </a>
+        <a href="itemRegistration.html" class="w3-bar-item w3-button w3-padding w3-blue">
+          <i class="fa-solid fa-basket-shopping"></i> Item Registration
+        </a>
+        <a href="pickup.html" class="w3-bar-item w3-button w3-padding">
+          <i class="fa-solid fa-truck-ramp-box"></i> Pickup
+        </a>
+      </div>
+    </nav>
+
+    <!-- Page content -->
+    <div class="w3-main" style="margin-left: 300px; margin-top: 43px">
+      <header class="w3-container" style="padding-top: 22px">
+        <h5><b><i class="fa-solid fa-basket-shopping"></i> Item Registration</b></h5>
+      </header>
+
+      <div class="w3-row-padding w3-margin-bottom">
+        <div class="w3-container w3-white w3-padding-16">
+          <div class="w3-row-padding" style="margin: 0 -16px">
+            <div class="w3-col m4 l4 w3-margin-bottom">
+              <label><i class="fa fa-user fa-fw"></i> Customer ID</label>
+              <input class="w3-input w3-border" type="text" id="customerIdDisplay" readonly />
+            </div>
+            <div class="w3-col m4 l4 w3-margin-bottom">
+              <label><i class="fa fa-user fa-fw"></i> Customer Name</label>
+              <input class="w3-input w3-border" type="text" id="customerNameDisplay" readonly />
+            </div>
+            <div class="w3-col m4 l4 w3-margin-bottom">
+              <label><i class="fa fa-truck-fast fa-fw"></i> Service Type</label>
+              <input class="w3-input w3-border" type="text" id="serviceTypeDisplay" readonly />
+            </div>
+          </div>
+          
+          <!-- Items Container -->
+          <div id="itemsContainer">
+            <!-- First item form (static) -->
+            <div class="item-form" id="itemForm_0">
+              <div class="item-form-header">
+                <h5><i class="fa fa-tshirt"></i> Item #1</h5>
+              </div>
+              <div class="w3-row-padding" style="margin: 0 -16px">
+                <div class="w3-col m4 l4 w3-margin-bottom">
+                  <label><i class="fa fa-truck-fast fa-fw"></i> Laundry Type</label>
+                  <select class="w3-input w3-border laundry-type-select" required>
+                    <option value="">-- Select Laundry Type --</option>
+                    <option value="laundry">Laundry</option>
+                    <option value="drycleaning">Dry Cleaning</option>
+                  </select>
+                </div>
+                <div class="w3-col m4 l4 w3-margin-bottom">
+                  <label><i class="fa fa-truck-fast fa-fw"></i> Clothing Type</label>
+                  <select class="w3-input w3-border clothing-type-select" required>
+                    <option value="">-- Select Clothing Type --</option>
+                  </select>
+                </div>
+                <div class="w3-col m4 l4 w3-margin-bottom">
+                  <label><i class="fa fa-align-left fa-fw"></i> Item Description</label>
+                  <input class="w3-input w3-border cloth-description-input" type="text" placeholder="Enter item description..." required/>
+                </div>
+                <div class="w3-col m4 l4 w3-margin-bottom">
+                  <label><i class="fa fa-hashtag fa-fw"></i> Quantity</label>
+                  <input class="w3-input w3-border item-quantity-input" type="number" min="1" value="1" required/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button id="addNewItemBtn" class="w3-button w3-blue">
+            <i class="fa fa-plus"></i> Add Another Item
+          </button>
+
+          <div id="actionButtons">
+            <button id="proceedToPickupBtn" class="w3-button w3-green">
+              <i class="fa fa-arrow-right"></i> Proceed to Pickup
+            </button>
+          </div>
+
+          <div class="price-display" id="totalPriceDisplay">
+            Total Price: ₦0
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="actionButtons">
-    <button id="addNewItemBtn" class="w3-button w3-blue">
-      <i class="fa fa-plus"></i> Add Another Item
-    </button>
-    <button id="saveAllItemsBtn" class="w3-button w3-green">
-      <i class="fa fa-save"></i> Save All Items
-    </button>
-    <button id="proceedToPickupBtn" class="w3-button w3-teal">
-      <i class="fa fa-arrow-right"></i> Proceed to Pickup
-    </button>
-  </div>
-</div>
-<!-- Rest of HTML remains the same -->
+    <script src="./assets/JS/laundry.js"></script>
+    <script src="./assets/JS/assignItems.js"></script>
+</body>
+</html>
