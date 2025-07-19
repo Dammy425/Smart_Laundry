@@ -1,16 +1,12 @@
-// pickup.js
 document.addEventListener('DOMContentLoaded', function() {
     // Load all necessary data from localStorage
-    const customers = JSON.parse(localStorage.getItem('stat_array') || '[]');
-    const assignments = JSON.parse(localStorage.getItem('assignments') || '[]');
-    const serviceEntries = JSON.parse(localStorage.getItem('serviceEntries') || '[]');
+    const customers = getFromStore('stat');
+    const assignments = getFromStore('assignments');
+    const serviceEntries = getFromStore('serviceEntries');
     
     // Get the table body element
     const tableBody = document.querySelector("#tbStudent tbody");
-    if (!tableBody) {
-        console.warn('Table body for #tbStudent not found');
-        return;
-    }
+    if (!tableBody) return;
     
     // Clear existing rows
     tableBody.innerHTML = '';
@@ -32,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Find service type
         const serviceEntry = serviceEntries.find(s => s.customerId === customerId);
-        const serviceType = serviceEntry ? serviceEntry.serviceType : 'Normal Delivery'; // Default to normal
+        const serviceType = serviceEntry ? serviceEntry.serviceType : 'Normal Delivery';
         
         // Process each assignment for this customer
         assignmentsByCustomer[customerId].forEach(assignment => {
@@ -47,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'Express Delivery':
                     deliveryTime = '2 hours';
                     break;
-                default: // Normal Delivery
+                default:
                     deliveryTime = '16 hours';
             }
             
@@ -55,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${customerId}</td>
                 <td>${assignment.clothingType}</td>
                 <td>${assignment.clothDescription}</td>
-                <td>1</td>
+                <td>${assignment.quantity || 1}</td>
                 <td>${serviceType}</td>
                 <td>${deliveryTime}</td>
                 <td><button class="w3-button w3-green accept-btn" data-service="${serviceType}">Accept Order</button></td>
@@ -78,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const serviceType = this.getAttribute('data-service');
             let deliveryTime;
             
-            // Determine delivery time based on service type
             switch(serviceType) {
                 case 'Super Express Delivery':
                     deliveryTime = '20 mins';
@@ -86,20 +81,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'Express Delivery':
                     deliveryTime = '2 hours';
                     break;
-                default: // Normal Delivery
+                default:
                     deliveryTime = '16 hours';
             }
             
-            // Update button text and disable it
             this.textContent = `Accepted (${deliveryTime} delivery)`;
             this.classList.remove('w3-green');
             this.classList.add('w3-blue');
             this.disabled = true;
             
-            // Show confirmation message
             alert(`Order accepted! Estimated delivery time: ${deliveryTime}`);
             
-            // Here you could also update localStorage to mark this order as accepted
+            // Update dashboard stats
+            updateDashboardStats();
         });
     });
 });

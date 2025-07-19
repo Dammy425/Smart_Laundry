@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>W3.CSS Template</title>
+    <title>Laundry Management System</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="stylesheet" href="./assets/CSS/css1.css"/>
     <link rel="stylesheet" href="./assets/CSS/css2.css"/>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">make the boxes the
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
       html,
       body,
@@ -26,7 +26,7 @@
         class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey"
         onclick="w3_open();"
       >
-        <i class="fa fa-bars"></i>  Menu
+        <i class="fa fa-bars"></i>  Menu
       </button>
       <span class="w3-bar-item w3-right">Logo</span>
     </div>
@@ -47,8 +47,7 @@
           />
         </div>
         <div class="w3-col s8 w3-bar">
-          <span>Welcome, <strong><span id="userName"></span>Mike</strong></span
-          ><br />
+          <span>Welcome, <strong><span id="userName"></span>Mike</strong></span><br />
           <a href="#" class="w3-bar-item w3-button"
             ><i class="fa fa-envelope"></i
           ></a>
@@ -70,13 +69,13 @@
           class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black"
           onclick="w3_close()"
           title="close menu"
-          ><i class="fa fa-remove fa-fw"></i>  Close Menu</a
+          ><i class="fa fa-remove fa-fw"></i>  Close Menu</a
         >
         <a href="index.html" class="w3-bar-item w3-button w3-padding w3-blue"
-          ><i class="fa fa-dashboard fa-fw"></i>  Dashboard`</a
+          ><i class="fa fa-dashboard fa-fw"></i>  Dashboard</a
         >
         <a href="register.html" class="w3-bar-item w3-button w3-padding"
-          ><i class="fa fa-user-plus" ></i>  Register Customer</a
+          ><i class="fa fa-user-plus" ></i>  Register Customer</a
         >
         <a href="serviceType.html" class="w3-bar-item w3-button w3-padding"
           ><i class="fa-solid fa-truck-fast"></i>  Service Type</a
@@ -85,19 +84,19 @@
           ><i class="fa-solid fa-basket-shopping"></i>  Item Registration</a
         >
         <a href="pickup.html" class="w3-bar-item w3-button w3-padding"
-          ><i class="fa-solid fa-truck-ramp-box"></i></i>  PickUp</a
+          ><i class="fa-solid fa-truck-ramp-box"></i></i>  PickUp</a
         >
         <a href="#" class="w3-bar-item w3-button w3-padding"
-          ><i class="fa fa-bell fa-fw"></i>  News</a
+          ><i class="fa fa-bell fa-fw"></i>  News</a
         >
         <a href="#" class="w3-bar-item w3-button w3-padding"
-          ><i class="fa fa-bank fa-fw"></i>  General</a
+          ><i class="fa fa-bank fa-fw"></i>  General</a
         >
         <a href="#" class="w3-bar-item w3-button w3-padding"
-          ><i class="fa fa-history fa-fw"></i>  History</a
+          ><i class="fa fa-history fa-fw"></i>  History</a
         >
         <a href="#" class="w3-bar-item w3-button w3-padding"
-          ><i class="fa fa-cog fa-fw"></i>  Settings</a
+          ><i class="fa fa-cog fa-fw"></i>  Settings</a
         ><br /><br />
       </div>
     </nav>
@@ -125,50 +124,43 @@
           <div class="w3-container w3-red w3-padding-16">
             <div class="w3-left"><i class="fa fa-users w3-xxxlarge"></i></div>
             <div class="w3-right">
-              <h3>0</h3>
+              <h3 id="totalCustomers">0</h3>
             </div>
             <div class="w3-clear"></div>
-            <h4>Active Users</h4>
+            <h4>Total Customers</h4>
           </div>
         </div>
         <div class="w3-quarter">
           <div class="w3-container w3-blue w3-padding-16">
-            <div class="w3-left"><i class="fa fa-user-slash w3-xxxlarge"></i></div>
+            <div class="w3-left"><i class="fa fa-tshirt w3-xxxlarge"></i></div>
             <div class="w3-right">
-              <h3>0</h3>
+              <h3 id="totalItems">0</h3>
             </div>
             <div class="w3-clear"></div>
-            <h4>Inactive</h4>
+            <h4>Total Items</h4>
           </div>
         </div>
         <div class="w3-quarter">
           <div class="w3-container w3-teal w3-padding-16">
             <div class="w3-left" style="position: relative; width: 48px; height: 48px; display: flex; align-items: center;">
-              <!-- Laundry basket icon (use fa-basket-shopping as closest) -->
               <i class="fa fa-shopping-basket" style="font-size:40px;"></i>
-              <!-- Check icon overlay -->
               <i class="fa fa-check-circle" style="color:#2ecc40; font-size:22px; position:absolute; right:0; bottom:0; background:white; border-radius:50%;"></i>
             </div>
             <div class="w3-right">
-              <h3>0</h3>
+              <h3 id="dailyCollected">0</h3>
             </div>
             <div class="w3-clear"></div>
-            <h4>Laundry Done</h4>
+            <h4>Today's Collections</h4>
           </div>
         </div>
         <div class="w3-quarter">
           <div class="w3-container w3-orange w3-text-white w3-padding-16">
-            <div class="w3-left" style="position: relative; width: 48px; height: 48px; display: flex; align-items: center;">
-              <!-- Laundry basket icon (use fa-basket-shopping as closest) -->
-              <i class="fa fa-shopping-basket" style="font-size:40px;"></i>
-              <!-- Clock icon overlay -->
-              <i class="fa fa-clock" style="color:#2ecc40; font-size:22px; position:absolute; right:0; bottom:0; background:white; border-radius:50%;"></i>
-            </div>
+            <div class="w3-left"><i class="fa fa-money-bill-wave w3-xxxlarge"></i></div>
             <div class="w3-right">
-              <h3>0</h3>
+              <h3 id="dailyRevenue">₦0</h3>
             </div>
             <div class="w3-clear"></div>
-            <h4>Laundry Pending</h4>
+            <h4>Today's Revenue</h4>
           </div>
         </div>
       </div>
@@ -177,7 +169,7 @@
         <div class="w3-container w3-white w3-padding-16">
           <div class="w3-col s12">
             <div class="w3-col s9">
-              <h5>School Student</h5>
+              <h5>Registered Customers</h5>
             </div>
             <div class="w3-col s3">
               <button
@@ -185,7 +177,7 @@
                 onclick="clearClassItems()"
                 class="w3-button w3-sand"
               >
-                Clear  <i class="fa fa-eraser"></i>
+                Clear  <i class="fa fa-eraser"></i>
               </button>
             </div>
           </div>
@@ -213,7 +205,7 @@
             onclick="showAddForm()"
             class="w3-button w3-dark-grey"
           >
-            Register User  <i class="fa fa-arrow-right"></i>
+            Register User  <i class="fa fa-arrow-right"></i>
           </button>
         </div>
         <hr /> 
