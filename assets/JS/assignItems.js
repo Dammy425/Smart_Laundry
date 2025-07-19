@@ -1,179 +1,181 @@
 // assignItems.js
 
-// Dry Cleaning Items
+// Clothing type options
 const dryCleaningItems = [
-  "-- Select Clothing Type --",
-  "Wool or silk suits",
-  "Blazers (structured)",
-  "Tuxedos",
-  "Evening gowns",
-  "Silk or satin dresses",
-  "Beaded/embellished garments",
-  "Wool coats",
-  "Cashmere overcoats",
-  "Leather/suede jackets",
-  "Fur-trimmed coats",
-  "Silk blouses",
-  "Cashmere sweaters",
-  "Linen suits",
-  "Velvet clothing",
-  "Taffeta/chiffon dresses",
-  "Wool trousers",
-  "Pleated skirts",
-  "Silk neckties",
-  "Delicate scarves",
-  "Vintage/high-end designer wear",
-  "Structured work uniforms"
+    "-- Select Clothing Type --",
+    "Wool or silk suits",
+    "Blazers (structured)",
+    "Tuxedos",
+    "Evening gowns",
+    "Silk or satin dresses",
+    "Beaded/embellished garments",
+    "Wool coats",
+    "Cashmere overcoats",
+    "Leather/suede jackets",
+    "Fur-trimmed coats",
+    "Silk blouses",
+    "Cashmere sweaters",
+    "Linen suits",
+    "Velvet clothing",
+    "Taffeta/chiffon dresses",
+    "Wool trousers",
+    "Pleated skirts",
+    "Silk neckties",
+    "Delicate scarves",
+    "Vintage/high-end designer wear",
+    "Structured work uniforms"
 ];
 
-// Laundry Items
 const laundryItems = [
-  "-- Select Clothing Type --",
-  "Cotton t-shirts",
-  "Jeans & denim",
-  "Sweatshirts & hoodies",
-  "Pajamas & loungewear",
-  "Underwear & socks",
-  "Bed sheets & pillowcases",
-  "Bath towels",
-  "Gym clothes (polyester blends)",
-  "Knit cotton dresses",
-  "Stretchy leggings",
-  "Baby clothes (non-delicate)",
-  "Canvas sneakers (washable)",
-  "Cotton button-down shirts",
-  "Shorts (cotton/polyester)",
-  "Swimwear (machine-washable)",
-  "Aprons & cloth napkins",
-  "Flannel shirts",
-  "Microfiber cleaning cloths",
-  "Cotton skirts",
-  "Reusable shopping bags"
+    "-- Select Clothing Type --",
+    "Cotton t-shirts",
+    "Jeans & denim",
+    "Sweatshirts & hoodies",
+    "Pajamas & loungewear",
+    "Underwear & socks",
+    "Bed sheets & pillowcases",
+    "Bath towels",
+    "Gym clothes (polyester blends)",
+    "Knit cotton dresses",
+    "Stretchy leggings",
+    "Baby clothes (non-delicate)",
+    "Canvas sneakers (washable)",
+    "Cotton button-down shirts",
+    "Shorts (cotton/polyester)",
+    "Swimwear (machine-washable)",
+    "Aprons & cloth napkins",
+    "Flannel shirts",
+    "Microfiber cleaning cloths",
+    "Cotton skirts",
+    "Reusable shopping bags"
 ];
 
 document.addEventListener('DOMContentLoaded', function() {
-  var customerId = localStorage.getItem('selectedCustomerId') || '';
-  var customerName = '';
-  if (customerId) {
-    // Get customer details from stat_array
-    var customers = JSON.parse(localStorage.getItem('stat_array') || '[]');
-    var found = customers.find(c => c.customerId1 === customerId);
-    if (found) {
-      customerName = (found.surname1 || '') + ' ' + (found.otherName1 || '');
-    }
-  }
+    // Load customer data
+    const customerId = localStorage.getItem('selectedCustomerId') || '';
+    const customerName = getCustomerName(customerId);
+    const serviceType = getServiceType(customerId);
 
-  document.getElementById('customerIdDisplay').value = customerId;
-  document.getElementById('customerNameDisplay').value = customerName;
+    // Set form values
+    document.getElementById('customerIdDisplay').value = customerId;
+    document.getElementById('customerNameDisplay').value = customerName;
+    document.getElementById('serviceTypeDisplay').value = serviceType || 'Not specified';
 
-  // Auto-fill Service Type textbox from localStorage
-  var serviceTypeInput = document.getElementById('serviceTypeDisplay');
-  var serviceTypeValue = '';
-  try {
-    var serviceEntries = JSON.parse(localStorage.getItem('serviceEntries') || '[]');
-    var serviceEntry = serviceEntries.find(e => String(e.customerId).trim() === String(customerId).trim());
-    if (serviceEntry && serviceEntry.serviceType) {
-      serviceTypeValue = serviceEntry.serviceType;
-    } else {
-      console.log('Service type not found for customerId:', customerId);
-    }
-  } catch (err) {
-    serviceTypeValue = '';
-    console.error('Error fetching service type:', err);
-  }
-  serviceTypeInput.value = serviceTypeValue;
+    // Initialize laundry type dropdown
+    const laundryTypeSelect = document.getElementById('laundryTypeSelect');
+    const clothingTypeSelect = document.getElementById('clothingTypeSelect');
 
-  // Get selects by new unique IDs
-  var laundryTypeSelect = document.getElementById('laundryTypeSelect');
-  var clothingTypeSelect = document.getElementById('clothingTypeSelect');
-
-  function populateClothingType(optionsArray) {
-    clothingTypeSelect.innerHTML = '';
-    optionsArray.forEach(function(item) {
-      var opt = document.createElement('option');
-      opt.value = item;
-      opt.textContent = item;
-      clothingTypeSelect.appendChild(opt);
+    // Populate clothing types based on laundry type selection
+    laundryTypeSelect.addEventListener('change', function() {
+        populateClothingTypes(this.value);
     });
-  }
 
-  // Initial population
-  if (laundryTypeSelect.value === 'laundry') {
-    populateClothingType(laundryItems);
-  } else if (laundryTypeSelect.value === 'drycleaning') {
-    populateClothingType(dryCleaningItems);
-  }
+    // Initialize with laundry items by default
+    populateClothingTypes('laundry');
 
-  laundryTypeSelect.addEventListener('change', function() {
-    if (laundryTypeSelect.value === 'laundry') {
-      populateClothingType(laundryItems);
-    } else if (laundryTypeSelect.value === 'drycleaning') {
-      populateClothingType(dryCleaningItems);
-    } else {
-      clothingTypeSelect.innerHTML = '';
-    }
-  });
+    // Set up button event listeners
+    document.getElementById('addNewItemBtn').addEventListener('click', addNewItem);
+    document.getElementById('proceedToPickupBtn').addEventListener('click', proceedToPickup);
 });
 
-// Utility to save to localStorage (append to array)
-function saveToStore(key, value) {
-  let arr = JSON.parse(localStorage.getItem(key) || '[]');
-  arr.push(value);
-  localStorage.setItem(key, JSON.stringify(arr));
+function getCustomerName(customerId) {
+    const customers = JSON.parse(localStorage.getItem('stat_array') || '[]');
+    const customer = customers.find(c => c.customerId1 === customerId);
+    return customer ? `${customer.surname1} ${customer.otherName1}` : '';
 }
 
-// Utility to get all assignments for a customerId
-function getAssignmentsByCustomerId(customerId) {
-  let arr = JSON.parse(localStorage.getItem('assignments') || '[]');
-  return arr.filter(entry => entry.customerId === customerId);
+function getServiceType(customerId) {
+    const serviceEntries = JSON.parse(localStorage.getItem('serviceEntries') || '[]');
+    const serviceEntry = serviceEntries.find(e => e.customerId === customerId);
+    return serviceEntry ? serviceEntry.serviceType : null;
 }
 
-// Handler for Register Service Entry button
-function registerItemAssignment() {
-  var customerId = document.getElementById('customerIdDisplay').value.trim();
-  var customerName = document.getElementById('customerNameDisplay').value.trim();
-  var laundryType = document.getElementById('laundryTypeSelect').value;
-  var clothingType = document.getElementById('clothingTypeSelect').value;
-  var clothDescription = document.getElementById('clothDescriptionInput').value.trim();
+function populateClothingTypes(laundryType) {
+    const clothingTypeSelect = document.getElementById('clothingTypeSelect');
+    clothingTypeSelect.innerHTML = '';
 
-  // Validate all required fields
-  if (!customerId || !customerName || !laundryType || !clothingType || !clothDescription) {
-    alert('Please fill in all fields.');
-    return;
-  }
+    const items = laundryType === 'drycleaning' ? dryCleaningItems : laundryItems;
+    
+    items.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        option.textContent = item;
+        clothingTypeSelect.appendChild(option);
+    });
+}
 
-  // Validate clothing type selection
-  if (clothingType === "-- Select Clothing Type --") {
-    alert('Please select a valid clothing type.');
-    return;
-  }
+function addNewItem() {
+    const customerId = document.getElementById('customerIdDisplay').value.trim();
+    const customerName = document.getElementById('customerNameDisplay').value.trim();
+    const laundryType = document.getElementById('laundryTypeSelect').value;
+    const clothingType = document.getElementById('clothingTypeSelect').value;
+    const clothDescription = document.getElementById('clothDescriptionInput').value.trim();
 
-  // Validate cloth description length
-  if (clothDescription.length < 3) {
-    alert('Please enter a more detailed description (at least 3 characters).');
-    return;
-  }
+    // Validate inputs
+    if (!validateInputs(customerId, laundryType, clothingType, clothDescription)) {
+        return;
+    }
 
-  var assignment = {
-    customerId: customerId,
-    customerName: customerName,
-    laundryType: laundryType,
-    clothingType: clothingType,
-    clothDescription: clothDescription,
-    dateRegistered: new Date().toISOString() // Add timestamp for tracking
-  };
+    // Create and save the assignment
+    const assignment = {
+        customerId: customerId,
+        customerName: customerName,
+        laundryType: laundryType,
+        clothingType: clothingType,
+        clothDescription: clothDescription,
+        timestamp: new Date().toISOString()
+    };
 
-  // Save the assignment
-  saveToStore('assignments', assignment);
-  
-  // Show success message
-  alert('Item registered successfully! Redirecting to pickup page...');
-  
-  // Clear the form (optional)
-  document.getElementById('clothDescriptionInput').value = '';
-  
-  // Redirect to pickup page after 1 second
-  setTimeout(function() {
+    saveToStore('assignments', assignment);
+    alert('Item added successfully!');
+    resetForm();
+}
+
+function proceedToPickup() {
+    // Check if any items have been added
+    const assignments = JSON.parse(localStorage.getItem('assignments') || '[]');
+    const customerId = document.getElementById('customerIdDisplay').value.trim();
+    const customerAssignments = assignments.filter(a => a.customerId === customerId);
+
+    if (customerAssignments.length === 0) {
+        alert('Please add at least one item before proceeding.');
+        return;
+    }
+
     window.location.href = "pickup.html";
-  }, 1000);
+}
+
+function validateInputs(customerId, laundryType, clothingType, clothDescription) {
+    if (!customerId) {
+        alert('Customer information is missing. Please start from registration.');
+        return false;
+    }
+
+    if (!laundryType || laundryType === "-- Select Laundry Type --") {
+        alert('Please select a laundry type.');
+        return false;
+    }
+
+    if (!clothingType || clothingType === "-- Select Clothing Type --") {
+        alert('Please select a clothing type.');
+        return false;
+    }
+
+    if (!clothDescription || clothDescription.length < 3) {
+        alert('Please enter a valid description (at least 3 characters).');
+        return false;
+    }
+
+    return true;
+}
+
+function resetForm() {
+    document.getElementById('clothDescriptionInput').value = '';
+    document.getElementById('clothingTypeSelect').selectedIndex = 0;
+}
+
+function saveToStore(key, value) {
+    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+    arr.push(value);
+    localStorage.setItem(key, JSON.stringify(arr));
 }
