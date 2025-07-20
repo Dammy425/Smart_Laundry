@@ -1,43 +1,33 @@
 document.addEventListener("DOMContentLoaded", function () {
   loadCustomerID();
   loadStates();
-  localStorage.setItem('stat', 'Inactive');
+  setToStore('stat', 'Inactive');
   loadStatus();
 });
 
-// ======================    MY VARIABLES    ======================
-
+// ====================== MY VARIABLES ======================
 const customerId = document.getElementById("customer-id");
 const surname = document.getElementById("surname");
 const otherName = document.getElementById("otherName");
 const mobileNo = document.getElementById("mobileNo");
-
-// ====================== BEGINNER-FRIENDLY: Only allow numbers in mobile number field ======================
-// Get the mobile number input field by its ID
-const mobileNoInput = document.getElementById('mobileNo');
-
-// Listen for any input in the mobile number field
-if (mobileNoInput) {
-  mobileNoInput.addEventListener('input', function () {
-    // Replace any character that is not a number with an empty string
-    // This means only numbers will be allowed
-    this.value = this.value.replace(/\D/g, '');
-    // Make sure the length does not go above 11
-    if (this.value.length > 11) {
-      this.value = this.value.slice(0, 11);
-    }
-  });
-}
 const email = document.getElementById("email");
 const address = document.getElementById("address");
 const state = document.getElementById("state");
 const city = document.getElementById("city");
 const statu = document.getElementById("status");
-const tbStudent = document.querySelector("#tbStudent tbody")
-const statusArray = ["-- Select Status --", "Active", "Inactive", "Pending"];
+const statusArray = ["Active", "Inactive", "Pending"];
 
-// ======================    MY STATES ARRAY    ======================
+// Mobile number validation
+if (mobileNo) {
+  mobileNo.addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '');
+    if (this.value.length > 11) {
+      this.value = this.value.slice(0, 11);
+    }
+  });
+}
 
+// ====================== STATE/CITY DATA ======================
 const NG_STATES = [
   "-- Select State --",
   "Abia",
@@ -76,10 +66,8 @@ const NG_STATES = [
   "Taraba",
   "Yobe",
   "Zamfara",
-  "FCT",
+  "FCT"
 ];
-
-// ======================    MY CITIES ARRAY    ======================
 
 const abia_cities = [
   "-- Select City --",
@@ -778,27 +766,20 @@ const fct_cities = [
   "Nyanya",
   "Karshi",
 ];
-
-// ======================    MY FUNCTIONS    ======================
-
+// ====================== FUNCTIONS ======================
 function loadCustomerID() {
   const id = Math.floor(Math.random() * 100000);
   customerId.innerHTML = `
     <label><i class="fa-solid fa-id-card-clip"></i> Customer Id</label>
     <input class="w3-input w3-border" type="text" id="customer-id-input" required readonly />
   `;
-  // Set the value property directly
-  const custIdInput = document.getElementById('customer-id-input');
-  if (custIdInput) {
-    custIdInput.value = `cu${id}`;
-  }
+  document.getElementById('customer-id-input').value = `cu${id}`;
 }
 
 function loadStates() {
   state.innerHTML = "";
-  const stateOptions = NG_STATES || [];
-  stateOptions.forEach((x, index) => {
-    option = document.createElement("option");
+  NG_STATES.forEach((x, index) => {
+    const option = document.createElement("option");
     option.textContent = x;
     option.value = index;
     state.appendChild(option);
@@ -866,90 +847,45 @@ function loadCities() {
 state.addEventListener("change", loadCities);
 
 function loadStatus() {
-  let savedStatus = localStorage.getItem('stat');
-  if (savedStatus && statusArray.includes(savedStatus)) {
+  let savedStatus = getFromStore('stat')[0] || 'Inactive';
+  if (statusArray.includes(savedStatus)) {
     statu.value = savedStatus;
   } else {
-    savedStatus = 'Inactive';
-    statu.value = savedStatus;
+    statu.value = 'Inactive';
+    setToStore('stat', 'Inactive');
   }
 }
 
 function registerCustomer() {
-  const existingCustomers = getFromStore('stat');
+  const existingCustomers = getFromStore('stat').filter(c => typeof c === 'object');
   const inputSurname = surname.value.trim().toLowerCase();
   const inputOtherName = otherName.value.trim().toLowerCase();
   const inputMobile = mobileNo.value.trim();
   const inputEmail = email.value.trim().toLowerCase();
-  const duplicateFound = existingCustomers.some(function(customer) {
+  
+  // Check for duplicates
+  const duplicateFound = existingCustomers.some(customer => {
     return (
-      (customer.surname1 && customer.surname1.trim().toLowerCase() === inputSurname &&
-       customer.otherName1 && customer.otherName1.trim().toLowerCase() === inputOtherName)
-      || (customer.mobileNo1 && customer.mobileNo1.trim() === inputMobile)
-      || (customer.email1 && customer.email1.trim().toLowerCase() === inputEmail)
+      (customer.surname1 && customer.surname1.toLowerCase() === inputSurname &&
+       customer.otherName1 && customer.otherName1.toLowerCase() === inputOtherName) ||
+      (customer.mobileNo1 && customer.mobileNo1.trim() === inputMobile) ||
+      (customer.email1 && customer.email1.toLowerCase() === inputEmail)
     );
   });
+
   if (duplicateFound) {
-    alert('A customer with this surname and other name, or phone number, or email already exists! Registration stopped.');
-    return;
-  }
-  if (surname.value === "") {
-    alert("Invalid Surname Input. Please Enter A Valid Surname");
-    return;
-  } else if (surname.value.length < 5) {
-    alert("Invalid Surname Input Length. Please Enter A Valid Surname");
-    return;
-  } else if (!isNaN(surname.value)) {
-    alert("Invalid Surname Input. Please Enter A Valid Surname");
-    console.log("It is not a number");
+    alert('A customer with this name, phone number, or email already exists!');
     return;
   }
 
-  if (otherName.value === "") {
-    alert("Invalid Other Name Input. Please Enter A Valid Other Name");
-    return;
-  } else if (otherName.value.length < 5) {
-    alert("Invalid Other Name Input Length. Please Enter A Valid Other Name");
-    return;
-  } else if (!isNaN(otherName.value)) {
-    alert("Invalid Other Name Input. Please Enter A Valid Other Name");
-    return;
-  }
+  // Validate inputs
+  if (!validateInputs()) return;
 
-  if (!isMobileNoValid(mobileNo)) return;
-
-  if (!isEmailValid(email)) return;
-
-  if (address.value === "") {
-    alert("Invalid Address Input. Please Enter A Valid Adreess");
-    return;
-  } else if (address.value.length < 5) {
-    alert("Invalid Address Input Lenght. Please Enter A Valid Adreess")
-    return;
-  }
-
-  if (state.value === "0" || state.value === "-- Select State --") {
-    alert("Invalid State Selection. Please Select A State");
-    return;
-  }
-
-  if (city.value === "0" || city.value === "-- Select City --") {
-    alert("Invalid City Selection. Please Select A City");
-    return;
-  }
-
-  
-  
-
-  const store = getFromStore('stat');
-  let custId = '';
+  // Create customer object
   const custIdInput = document.getElementById('customer-id-input');
-  if (custIdInput) {
-    custId = custIdInput.value;
-  }
   const obj = {
-    id: store.length + 1,
-    customerId1 : custId,
+    id: existingCustomers.length + 1,
+    customerId1: custIdInput ? custIdInput.value : '',
     surname1: surname.value,
     otherName1: otherName.value,
     mobileNo1: mobileNo.value,
@@ -957,64 +893,62 @@ function registerCustomer() {
     address1: address.value,
     stateId: state.options[state.selectedIndex].text,
     cityId: city.options[city.selectedIndex].text,
-    statusId: 'Pending',
+    statusId: 'Pending'
   };
 
   saveToStore('stat', obj);
-  localStorage.setItem('stat', 'Pending');
-  loadStatus();
+  setToStore('stat', 'Pending');
   alert("Customer Registered Successfully");
-  // Save customer to localStorage for assignment page compatibility
-  saveCustomerToLocalStorage({
-    id: custId, // must match the input used in assignItems.js
-    name: surname.value + " " + otherName.value,
-    surname: surname.value,
-    otherName: otherName.value,
-    mobileNo: mobileNo.value,
-    email: email.value,
-    address: address.value,
-    state: state.options[state.selectedIndex].text,
-    city: city.options[city.selectedIndex].text,
-    status: 'Pending'
-  });
-  window.location.href = "../index.html";
+  window.location.href = "index.html";
+}
+
+function validateInputs() {
+  if (surname.value === "" || surname.value.length < 2) {
+    alert("Please enter a valid surname (at least 2 characters)");
+    return false;
+  }
+
+  if (otherName.value === "" || otherName.value.length < 2) {
+    alert("Please enter valid other names (at least 2 characters)");
+    return false;
+  }
+
+  if (!isMobileNoValid(mobileNo)) return false;
+
+  if (!isEmailValid(email)) return false;
+
+  if (address.value === "" || address.value.length < 5) {
+    alert("Please enter a valid address (at least 5 characters)");
+    return false;
+  }
+
+  if (state.value === "0" || state.value === "-- Select State --") {
+    alert("Please select a state");
+    return false;
+  }
+
+  if (city.value === "0" || city.value === "-- Select City --") {
+    alert("Please select a city");
+    return false;
+  }
+
   return true;
-  
 }
-
-function saveCustomerToLocalStorage(customerObj) {
-  let customers = JSON.parse(localStorage.getItem("customers") || "[]");
-  customers.push(customerObj);
-  localStorage.setItem("customers", JSON.stringify(customers));
-}
-
-// Example usage in registerCustomer (add this after validation and before redirect):
-// saveCustomerToLocalStorage({
-//   id: customerId, // or whatever unique ID you use
-//   name: surname.value + " " + otherName.value,
-//   ...other fields as needed
-// });
 
 function isMobileNoValid(mobileNo) {  
   if (mobileNo.value === "") {
-    alert("Kindly enter your Mobile Number");
+    alert("Please enter your mobile number");
     return false;
   }
 
   if (mobileNo.value.length !== 11) {
-    alert("Invalid Mobile Number! Mobile Number must be 11 digits");
+    alert("Mobile number must be 11 digits");
     return false;
   }
 
-  if (isNaN(mobileNo.value)) {
-    alert("Invalid Mobile Number! Mobile Number must be digits");
-    return false;
-  }
-
-  const chkArry = ["020", "021", "070", "071", "080", "081", "090", "091"];
-
+  const chkArry = ["080", "081", "090", "091", "070", "071"];
   if (!chkArry.includes(mobileNo.value.substring(0, 3))) {
-    alert("Kindly enter a valid Nigeria Mobile Number");
+    alert("Please enter a valid Nigerian mobile number");
     return false;
   }
 
@@ -1023,13 +957,16 @@ function isMobileNoValid(mobileNo) {
 
 function isEmailValid(email) {
   if (email.value === "" || email.value.length < 5) {
-    alert("Empty / Invalid Email Address");
+    alert("Please enter a valid email address");
     return false;
   }
 
   if (email.value.indexOf("@") === -1 || email.value.indexOf(".") === -1) {
-    alert("Invalid Email Address");
+    alert("Please enter a valid email address");
     return false;
   }
   return true;
 }
+
+// Initialize city dropdown when state changes
+state.addEventListener("change", loadCities);
