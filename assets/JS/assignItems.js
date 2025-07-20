@@ -1,185 +1,201 @@
 // Clothing type options
 const dryCleaningItems = [
   "-- Select Clothing Type --",
-  "Wool or silk suits",
-  "Blazers (structured)",
-  "Tuxedos",
-  "Evening gowns",
-  "Silk or satin dresses",
-  "Beaded/embellished garments",
-  "Wool coats",
-  "Cashmere overcoats",
-  "Leather/suede jackets",
-  "Fur-trimmed coats",
-  "Silk blouses",
-  "Cashmere sweaters",
-  "Linen suits",
-  "Velvet clothing",
-  "Taffeta/chiffon dresses",
-  "Wool trousers",
-  "Pleated skirts",
-  "Silk neckties",
-  "Delicate scarves",
-  "Vintage/high-end designer wear",
+  "Wool or silk suits", "Blazers (structured)", "Tuxedos", "Evening gowns",
+  "Silk or satin dresses", "Beaded/embellished garments", "Wool coats", "Cashmere overcoats",
+  "Leather/suede jackets", "Fur-trimmed coats", "Silk blouses", "Cashmere sweaters",
+  "Linen suits", "Velvet clothing", "Taffeta/chiffon dresses", "Wool trousers",
+  "Pleated skirts", "Silk neckties", "Delicate scarves", "Vintage/high-end designer wear",
   "Structured work uniforms"
 ];
 
 const laundryItems = [
   "-- Select Clothing Type --",
-  "Cotton t-shirts",
-  "Jeans & denim",
-  "Sweatshirts & hoodies",
-  "Pajamas & loungewear",
-  "Underwear & socks",
-  "Bed sheets & pillowcases",
-  "Bath towels",
-  "Gym clothes (polyester blends)",
-  "Knit cotton dresses",
-  "Stretchy leggings",
-  "Baby clothes (non-delicate)",
-  "Canvas sneakers (washable)",
-  "Cotton button-down shirts",
-  "Shorts (cotton/polyester)",
-  "Swimwear (machine-washable)",
-  "Aprons & cloth napkins",
-  "Flannel shirts",
-  "Microfiber cleaning cloths",
-  "Cotton skirts",
+  "Cotton t-shirts", "Jeans & denim", "Sweatshirts & hoodies", "Pajamas & loungewear",
+  "Underwear & socks", "Bed sheets & pillowcases", "Bath towels", "Gym clothes (polyester blends)",
+  "Knit cotton dresses", "Stretchy leggings", "Baby clothes (non-delicate)", "Canvas sneakers (washable)",
+  "Cotton button-down shirts", "Shorts (cotton/polyester)", "Swimwear (machine-washable)",
+  "Aprons & cloth napkins", "Flannel shirts", "Microfiber cleaning cloths", "Cotton skirts",
   "Reusable shopping bags"
 ];
 
+let itemCounter = 1;
+
 document.addEventListener('DOMContentLoaded', function() {
-  // Load customer data
-  const customerId = localStorage.getItem('selectedCustomerId') || '';
-  const customerName = getCustomerName(customerId);
-  const serviceType = getServiceType(customerId);
+  // --- INITIALIZATION ---
+  loadCustomerData();
 
-  // Set form values
-  document.getElementById('customerIdDisplay').value = customerId;
-  document.getElementById('customerNameDisplay').value = customerName;
-  document.getElementById('serviceTypeDisplay').value = serviceType || 'Not specified';
+  // Populate the first item form's clothing types based on the default laundry type
+  const firstLaundrySelect = document.querySelector('#itemForm_0 .laundry-type-select');
+  populateClothingTypes(firstLaundrySelect);
 
-  // Initialize laundry type dropdown
-  const laundryTypeSelect = document.getElementById('laundryTypeSelect');
-  const clothingTypeSelect = document.getElementById('clothingTypeSelect');
+  // --- EVENT LISTENERS ---
+  document.getElementById('addNewItemBtn').addEventListener('click', addNewItemForm);
+  document.getElementById('proceedToPickupBtn').addEventListener('click', saveAllItemsAndProceed);
 
-  // Populate clothing types based on laundry type selection
-  laundryTypeSelect.addEventListener('change', function() {
-    populateClothingTypes(this.value);
+  // Use event delegation for dynamic elements within the container
+  const itemsContainer = document.getElementById('itemsContainer');
+  
+  // Listener for REMOVE button clicks
+  itemsContainer.addEventListener('click', function(e) {
+    // Traverse up to find the remove button if an icon inside it was clicked
+    const removeBtn = e.target.closest('.remove-item-btn');
+    if (removeBtn) {
+      removeForm(removeBtn);
+    }
   });
-
-  // Initialize with laundry items by default
-  populateClothingTypes('laundry');
-
-  // Set up button event listeners
-  document.getElementById('addNewItemBtn').addEventListener('click', addNewItem);
-  document.getElementById('proceedToPickupBtn').addEventListener('click', proceedToPickup);
+  
+  // Listener for LAUNDRY TYPE changes
+  itemsContainer.addEventListener('change', function(e) {
+    if (e.target.classList.contains('laundry-type-select')) {
+      populateClothingTypes(e.target);
+    }
+  });
 });
 
-function getCustomerName(customerId) {
+// --- CORE FUNCTIONS ---
+
+function loadCustomerData() {
+  const customerId = localStorage.getItem('selectedCustomerId') || '';
   const customers = getFromStore('stat');
-  const customer = customers.find(c => c.customerId1 === customerId);
-  return customer ? `${customer.surname1} ${customer.otherName1}` : '';
-}
-
-function getServiceType(customerId) {
   const serviceEntries = getFromStore('serviceEntries');
+
+  const customer = customers.find(c => c.customerId1 === customerId);
   const serviceEntry = serviceEntries.find(e => e.customerId === customerId);
-  return serviceEntry ? serviceEntry.serviceType : null;
+  
+  const customerName = customer ? `${customer.surname1} ${customer.otherName1}` : 'N/A';
+  const serviceType = serviceEntry ? serviceEntry.serviceType : 'Not Specified';
+
+  document.getElementById('customerIdDisplay').value = customerId;
+  document.getElementById('customerNameDisplay').value = customerName;
+  document.getElementById('serviceTypeDisplay').value = serviceType;
 }
 
-function populateClothingTypes(laundryType) {
-  const clothingTypeSelect = document.getElementById('clothingTypeSelect');
-  clothingTypeSelect.innerHTML = '';
+function addNewItemForm() {
+  itemCounter++;
+  const itemsContainer = document.getElementById('itemsContainer');
+  
+  // Clone the last item form available
+  const lastForm = itemsContainer.lastElementChild;
+  const newForm = lastForm.cloneNode(true);
 
+  // Update ID and title
+  newForm.id = `itemForm_${itemCounter}`;
+  newForm.querySelector('.item-title').innerHTML = `<i class="fa fa-tshirt"></i> Item #${itemCounter}`;
+  
+  // Clear input fields in the new form
+  newForm.querySelector('.laundry-type-select').selectedIndex = 0;
+  newForm.querySelector('.clothing-type-select').innerHTML = '<option value="">-- Select Clothing Type --</option>';
+  newForm.querySelector('.cloth-description-input').value = '';
+  newForm.querySelector('.item-quantity-input').value = '1';
+  newForm.style.border = '1px solid #ddd'; // Reset border style
+
+  // Show the remove button
+  newForm.querySelector('.remove-item-btn').style.display = 'inline';
+
+  itemsContainer.appendChild(newForm);
+}
+
+function removeForm(removeBtn) {
+  const formToRemove = removeBtn.closest('.item-form');
+  // Do not remove if it's the only form left
+  if (document.querySelectorAll('.item-form').length > 1) {
+    formToRemove.remove();
+    updateFormNumbers();
+  }
+}
+
+function updateFormNumbers() {
+  const allForms = document.querySelectorAll('.item-form');
+  itemCounter = 1; // Reset global counter
+  allForms.forEach(form => {
+    form.querySelector('.item-title').innerHTML = `<i class="fa fa-tshirt"></i> Item #${itemCounter}`;
+    itemCounter++;
+  });
+  itemCounter--; // Adjust counter to be the last index
+}
+
+function populateClothingTypes(laundrySelectElement) {
+  const laundryType = laundrySelectElement.value;
+  // Find the clothing select within the same form
+  const clothingSelect = laundrySelectElement.closest('.item-form').querySelector('.clothing-type-select');
+  
+  clothingSelect.innerHTML = ''; // Clear existing options
   const items = laundryType === 'drycleaning' ? dryCleaningItems : laundryItems;
   
   items.forEach(item => {
     const option = document.createElement('option');
     option.value = item;
     option.textContent = item;
-    clothingTypeSelect.appendChild(option);
+    clothingSelect.appendChild(option);
   });
 }
 
-function addNewItem() {
-  const customerId = document.getElementById('customerIdDisplay').value.trim();
-  const customerName = document.getElementById('customerNameDisplay').value.trim();
-  const laundryType = document.getElementById('laundryTypeSelect').value;
-  const clothingType = document.getElementById('clothingTypeSelect').value;
-  const clothDescription = document.getElementById('clothDescriptionInput').value.trim();
-  const quantity = document.getElementById('itemQuantityInput').value || 1;
+function saveAllItemsAndProceed() {
+  const allForms = document.querySelectorAll('.item-form');
+  let allItemsData = [];
+  let allValid = true;
 
-  // Validate inputs
-  if (!validateInputs(customerId, laundryType, clothingType, clothDescription)) {
-    return;
-  }
+  const customerId = document.getElementById('customerIdDisplay').value;
+  const customerName = document.getElementById('customerNameDisplay').value;
 
-  // Create and save the assignment
-  const assignment = {
-    customerId: customerId,
-    customerName: customerName,
-    laundryType: laundryType,
-    clothingType: clothingType,
-    clothDescription: clothDescription,
-    quantity: quantity,
-    timestamp: new Date().toISOString()
-  };
+  // --- VALIDATION PASS ---
+  allForms.forEach(form => {
+    form.style.border = '1px solid #ddd'; // Reset border
+    const laundryType = form.querySelector('.laundry-type-select').value;
+    const clothingType = form.querySelector('.clothing-type-select').value;
+    const description = form.querySelector('.cloth-description-input').value.trim();
+    const quantity = form.querySelector('.item-quantity-input').value;
 
-  saveToStore('assignments', assignment);
-  
-  // Also save to items for dashboard counting
-  saveToStore('item', {
-    customerId: customerId,
-    itemType: clothingType,
-    description: clothDescription,
-    date: new Date().toISOString()
+    if (!laundryType || !clothingType || clothingType === '-- Select Clothing Type --' || !description || description.length < 3) {
+      allValid = false;
+      form.style.border = '2px solid red';
+    } else {
+      allItemsData.push({
+        laundryType,
+        clothingType,
+        clothDescription: description,
+        quantity,
+      });
+    }
   });
-  
-  alert('Item added successfully!');
-  resetForm();
-  updateDashboardStats();
-}
 
-function proceedToPickup() {
-  const customerId = document.getElementById('customerIdDisplay').value.trim();
-  const assignments = getFromStore('assignments');
-  const customerAssignments = assignments.filter(a => a.customerId === customerId);
+  // --- SAVE AND REDIRECT PASS ---
+  if (allValid) {
+    if (allItemsData.length === 0) {
+        alert("Please add at least one item.");
+        return;
+    }
 
-  if (customerAssignments.length === 0) {
-    alert('Please add at least one item before proceeding.');
-    return;
+    allItemsData.forEach(itemData => {
+      // Create the object to be saved for the pickup page
+      const assignment = {
+        customerId: customerId,
+        customerName: customerName,
+        laundryType: itemData.laundryType,
+        clothingType: itemData.clothingType,
+        clothDescription: itemData.clothDescription,
+        quantity: itemData.quantity,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Save to 'assignments' for the pickup page logic
+      saveToStore('assignments', assignment);
+      
+      // Save to 'item' for dashboard counting
+      saveToStore('item', {
+        customerId: customerId,
+        itemType: itemData.clothingType,
+        description: itemData.clothDescription,
+        date: new Date().toISOString()
+      });
+    });
+
+    alert(`Successfully added ${allItemsData.length} item(s). Proceeding to pickup.`);
+    updateDashboardStats(); // Ensure dashboard is updated
+    window.location.href = 'pickup.html';
+
+  } else {
+    alert('Please correct the highlighted item(s). All fields are required and description must be at least 3 characters.');
   }
-
-  window.location.href = "pickup.html";
-}
-
-function validateInputs(customerId, laundryType, clothingType, clothDescription) {
-  if (!customerId) {
-    alert('Customer information is missing. Please start from registration.');
-    return false;
-  }
-
-  if (!laundryType || laundryType === "-- Select Laundry Type --") {
-    alert('Please select a laundry type.');
-    return false;
-  }
-
-  if (!clothingType || clothingType === "-- Select Clothing Type --") {
-    alert('Please select a clothing type.');
-    return false;
-  }
-
-  if (!clothDescription || clothDescription.length < 3) {
-    alert('Please enter a valid description (at least 3 characters).');
-    return false;
-  }
-
-  return true;
-}
-
-function resetForm() {
-  document.getElementById('clothDescriptionInput').value = '';
-  document.getElementById('clothingTypeSelect').selectedIndex = 0;
-  document.getElementById('itemQuantityInput').value = 1;
 }

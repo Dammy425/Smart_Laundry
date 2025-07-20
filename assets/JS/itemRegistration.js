@@ -1,3 +1,10 @@
+document.addEventListener('DOMContentLoaded', function() {
+document.getElementById('btnCheckUser').addEventListener('click', function() {
+// Call the new centralized function from laundry.js
+checkUser('customerIdCheck', 'assignItems.html');
+});
+});
+
 function checkUser() {
     const input = document.getElementById('customerIdCheck');
     const customerId = input.value.trim();

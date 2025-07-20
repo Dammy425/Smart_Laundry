@@ -22,6 +22,7 @@
         border-radius: 5px;
         margin-bottom: 15px;
         background-color: #f9f9f9;
+        transition: border 0.3s;
       }
       .item-form-header {
         display: flex;
@@ -122,7 +123,11 @@
             <!-- First item form (static) -->
             <div class="item-form" id="itemForm_0">
               <div class="item-form-header">
-                <h5><i class="fa fa-tshirt"></i> Item #1</h5>
+                <h5 class="item-title"><i class="fa fa-tshirt"></i> Item #1</h5>
+                <!-- This button is used for cloned forms -->
+                <span class="remove-item-btn" style="display: none;">
+                  <i class="fa fa-times-circle fa-lg"></i>
+                </span>
               </div>
               <div class="w3-row-padding" style="margin: 0 -16px">
                 <div class="w3-col m4 l4 w3-margin-bottom">
