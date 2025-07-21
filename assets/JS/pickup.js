@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Process each assignment
     assignments.forEach(assignment => {
-        const customer = customers.find(c => c.customerId1 === assignment.customerId);
-        const serviceEntry = serviceEntries.find(s => s.customerId === assignment.customerId);
+        const customer = customers.find(c => c && c.customerId1 === assignment.customerId);
+        const serviceEntry = serviceEntries.find(s => s && s.customerId === assignment.customerId);
         
         const serviceType = serviceEntry ? serviceEntry.serviceType : 'Normal Delivery';
         
@@ -33,12 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
             default: deliveryTime = '16 hours';
         }
 
-        // Check if the order has been accepted
         const isAccepted = assignment.accepted === true;
-
         const row = document.createElement("tr");
 
-        // Conditionally render the button based on the 'accepted' state
         const buttonHtml = isAccepted
             ? `<button class="w3-button w3-blue" disabled>Accepted (${deliveryTime} delivery)</button>`
             : `<button class="w3-button w3-green accept-btn" data-timestamp="${assignment.timestamp}" data-service="${serviceType}">Accept Order</button>`;
@@ -56,20 +53,43 @@ document.addEventListener('DOMContentLoaded', function() {
         tableBody.appendChild(row);
     });
     
-    // Add event listeners to all accept buttons that are not disabled
+    // Add event listeners to all 'Accept Order' buttons
     document.querySelectorAll('.accept-btn').forEach(button => {
         button.addEventListener('click', function() {
             const serviceType = this.getAttribute('data-service');
             const timestamp = this.getAttribute('data-timestamp');
             
-            // Find the item in the assignments array and update its state
             const assignmentIndex = assignments.findIndex(a => a.timestamp === timestamp);
+
             if (assignmentIndex !== -1) {
+                // 1. Mark the assignment as accepted
                 assignments[assignmentIndex].accepted = true;
-                
-                // Save the entire updated array back to localStorage
                 localStorage.setItem('assignments_array', JSON.stringify(assignments));
+
+                // ==========================================================
+                // === NEW LOGIC: Update Customer Status to 'Active' ===
+                // ==========================================================
                 
+                // 2. Get the customer ID from this assignment
+                const customerIdToUpdate = assignments[assignmentIndex].customerId;
+                
+                // 3. Load all customers
+                let allCustomers = getFromStore('stat');
+                const customerIndex = allCustomers.findIndex(c => c && c.customerId1 === customerIdToUpdate);
+                
+                // 4. Find the customer, check their status, and update if needed
+                if (customerIndex !== -1 && allCustomers[customerIndex].statusId !== 'Active') {
+                    allCustomers[customerIndex].statusId = 'Active';
+                    
+                    // 5. Save the updated list of customers back to localStorage
+                    localStorage.setItem('stat_array', JSON.stringify(allCustomers));
+                    console.log(`Customer ${customerIdToUpdate}'s status has been set to Active.`);
+                }
+                // ==========================================================
+                // === END OF NEW LOGIC ===
+                // ==========================================================
+
+                // 6. Update the UI and notify the user
                 let deliveryTime;
                 switch(serviceType) {
                     case 'Super Express Delivery': deliveryTime = '20 mins'; break;
@@ -77,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     default: deliveryTime = '16 hours';
                 }
                 
-                // Update the button's appearance and state
                 this.textContent = `Accepted (${deliveryTime} delivery)`;
                 this.classList.remove('w3-green');
                 this.classList.add('w3-blue');
@@ -85,8 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 alert(`Order accepted! Estimated delivery time: ${deliveryTime}`);
                 
-                // Update dashboard stats immediately
-                updateDashboardStats();
+                updateDashboardStats(); // Update dashboard counts immediately
             }
         });
     });

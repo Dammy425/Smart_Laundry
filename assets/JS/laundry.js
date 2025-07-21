@@ -3,10 +3,30 @@
 // =================================================================================
 
 document.addEventListener("DOMContentLoaded", function () {
-  // This runs on every page. Initialize dashboard stats if on the index page.
-  if (document.getElementById('totalCustomers')) {
+  const tableBody = document.querySelector("#tbStudent tbody");
+  
+  // This listener ensures that code only runs on pages that have the customer table.
+  if (tableBody) {
     calculateDashboardStats();
     showRegisteredCustomers();
+
+    // --- EVENT LISTENER FOR DYNAMIC BUTTONS (EDIT/REMOVE) ---
+    // This uses event delegation to handle clicks on buttons that don't exist when the page first loads.
+    tableBody.addEventListener('click', function(e) {
+      const targetButton = e.target.closest('button'); // Find the button that was clicked
+      if (!targetButton) return;
+
+      const customerId = targetButton.getAttribute('data-customer-id');
+
+      // Handle Edit Button Click
+      if (targetButton.classList.contains('edit-btn')) {
+        editCustomer(customerId);
+      }
+      // Handle Remove Button Click
+      if (targetButton.classList.contains('remove-btn')) {
+        removeCustomer(customerId);
+      }
+    });
   }
 });
 
@@ -49,22 +69,32 @@ function showRegisteredCustomers() {
   if (!tableBody) return;
 
   tableBody.innerHTML = "";
-  if (!customers || customers.length === 0) return;
+  if (!customers || customers.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="10" class="w3-center">No customers registered yet.</td></tr>`;
+      return;
+  }
 
   customers.forEach((customer) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${customer.customerId1 || ''}</td>
-      <td>${customer.surname1 || ''}</td>
-      <td>${customer.otherName1 || ''}</td>
-      <td>${customer.mobileNo1 || ''}</td>
-      <td>${customer.email1 || ''}</td>
-      <td>${customer.address1 || ''}</td>
-      <td>${customer.stateId || ''}</td>
-      <td>${customer.cityId || ''}</td>
-      <td style="font-weight: bold;">${customer.statusId || ''}</td>
-    `;
-    tableBody.appendChild(row);
+    // Ensure customer is a valid object before creating a row
+    if (customer && customer.customerId1) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+        <td>${customer.customerId1}</td>
+        <td>${customer.surname1 || ''}</td>
+        <td>${customer.otherName1 || ''}</td>
+        <td>${customer.mobileNo1 || ''}</td>
+        <td>${customer.email1 || ''}</td>
+        <td>${customer.address1 || ''}</td>
+        <td>${customer.stateId || ''}</td>
+        <td>${customer.cityId || ''}</td>
+        <td style="font-weight: bold;">${customer.statusId || ''}</td>
+        <td>
+            <button class="w3-button w3-tiny w3-blue edit-btn" data-customer-id="${customer.customerId1}">Edit</button>
+            <button class="w3-button w3-tiny w3-red remove-btn" data-customer-id="${customer.customerId1}">Remove</button>
+        </td>
+        `;
+        tableBody.appendChild(row);
+    }
   });
 }
 
@@ -75,7 +105,7 @@ function calculateDashboardStats() {
   const assignments = getFromStore('assignments');
   const services = getFromStore('service');
   
-  const totalCustomers = customers.filter(c => typeof c === 'object').length;
+  const totalCustomers = customers.filter(c => typeof c === 'object' && c !== null).length;
   const totalItems = assignments.length;
   
   let dailyCollected = 0;
@@ -94,18 +124,18 @@ function calculateDashboardStats() {
     }
   });
   
-  if (document.getElementById('totalCustomers')) {
-    document.getElementById('totalCustomers').textContent = totalCustomers;
-  }
-  if (document.getElementById('totalItems')) {
-    document.getElementById('totalItems').textContent = totalItems;
-  }
-  if (document.getElementById('dailyCollected')) {
-    document.getElementById('dailyCollected').textContent = dailyCollected;
-  }
-  if (document.getElementById('dailyRevenue')) {
-    document.getElementById('dailyRevenue').textContent = `₦${dailyRevenue.toFixed(2)}`;
-  }
+  // Update dashboard cards if they exist on the page
+  const totalCustomersEl = document.getElementById('totalCustomers');
+  if (totalCustomersEl) totalCustomersEl.textContent = totalCustomers;
+  
+  const totalItemsEl = document.getElementById('totalItems');
+  if (totalItemsEl) totalItemsEl.textContent = totalItems;
+  
+  const dailyCollectedEl = document.getElementById('dailyCollected');
+  if (dailyCollectedEl) dailyCollectedEl.textContent = dailyCollected;
+  
+  const dailyRevenueEl = document.getElementById('dailyRevenue');
+  if (dailyRevenueEl) dailyRevenueEl.textContent = `₦${dailyRevenue.toFixed(2)}`;
 }
 
 function updateDashboardStats() {
@@ -120,13 +150,49 @@ function clearClassItems() {
     localStorage.removeItem('item_array');
     localStorage.removeItem('service_array');
     localStorage.removeItem('selectedCustomerId');
+    localStorage.removeItem('customerIdToEdit');
     alert("All application data has been cleared.");
     window.location.reload();
   }
 }
 
 // =================================================================================
-// NEW CENTRALIZED UTILITY FUNCTION
+// NEW EDIT AND REMOVE FUNCTIONS
+// =================================================================================
+
+function removeCustomer(customerId) {
+    if (confirm(`Are you sure you want to remove customer ${customerId}? This will also remove their associated items.`)) {
+        // Remove the customer
+        let customers = getFromStore('stat');
+        customers = customers.filter(c => c && c.customerId1 !== customerId);
+        localStorage.setItem('stat_array', JSON.stringify(customers));
+        
+        // Also remove their associated assignments and items for dashboard counting
+        let assignments = getFromStore('assignments');
+        assignments = assignments.filter(a => a && a.customerId !== customerId);
+        localStorage.setItem('assignments_array', JSON.stringify(assignments));
+        
+        let items = getFromStore('item');
+        items = items.filter(i => i && i.customerId !== customerId);
+        localStorage.setItem('item_array', JSON.stringify(items));
+
+        alert('Customer removed successfully.');
+        
+        // Refresh the UI
+        showRegisteredCustomers();
+        updateDashboardStats();
+    }
+}
+
+function editCustomer(customerId) {
+    // Store the ID of the customer to be edited and redirect
+    localStorage.setItem('customerIdToEdit', customerId);
+    window.location.href = 'edit.html';
+}
+
+
+// =================================================================================
+// CENTRALIZED UTILITY FUNCTION
 // =================================================================================
 
 function checkUser(inputElementId, redirectUrl) {
@@ -163,8 +229,9 @@ function checkUser(inputElementId, redirectUrl) {
         
         const interval = setInterval(function() {
             countdown--;
-            if (document.getElementById('countdown')) {
-                document.getElementById('countdown').textContent = countdown;
+            const countdownEl = document.getElementById('countdown');
+            if (countdownEl) {
+                countdownEl.textContent = countdown;
             }
             if (countdown <= 0) {
                 clearInterval(interval);
