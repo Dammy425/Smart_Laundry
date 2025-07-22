@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Update the customer object at that index with the new form values
     customers[customerIndex] = {
-        ...customers[customerIndex], // Keep original ID and other non-form data
+        ...customers[customerIndex], // Keep original ID and other non-form datnp
         surname1: surname.value,
         otherName1: otherName.value,
         mobileNo1: mobileNo.value,
